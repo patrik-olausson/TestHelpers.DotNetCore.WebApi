@@ -8,7 +8,7 @@ namespace TestHelpers.DotNetCore.WebApi
 {
     public class ApiCallHelper : IDisposable
     {
-        private readonly HttpClient _httpClient;
+        public readonly HttpClient HttpClient;
         private readonly Action<string> _writeToTestOutput;
 
         public ApiCallHelper(
@@ -16,14 +16,14 @@ namespace TestHelpers.DotNetCore.WebApi
             Action<string> writeToTestOutput,
             IReadOnlyCollection<Tuple<string, string>> defaultHeaders = null)
         {
-            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            HttpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _writeToTestOutput = writeToTestOutput;
 
             if (defaultHeaders != null)
             {
                 foreach (var tuple in defaultHeaders)
                 {
-                    _httpClient.DefaultRequestHeaders.Add(tuple.Item1, tuple.Item2);
+                    HttpClient.DefaultRequestHeaders.Add(tuple.Item1, tuple.Item2);
                 }
             }
         }
@@ -33,9 +33,9 @@ namespace TestHelpers.DotNetCore.WebApi
             bool ensureSuccessStatusCode = true,
             Action<HttpClient> preRequestConfigureHttpClientAction = null)
         {
-            preRequestConfigureHttpClientAction?.Invoke(_httpClient);
+            preRequestConfigureHttpClientAction?.Invoke(HttpClient);
 
-            var response = await _httpClient.GetAsync(requestUri);
+            var response = await HttpClient.GetAsync(requestUri);
 
             return await CreateAssertableResponseAsync(response, $"GET {requestUri}", ensureSuccessStatusCode);
         }
@@ -45,9 +45,9 @@ namespace TestHelpers.DotNetCore.WebApi
             bool ensureSuccessStatusCode = true,
             Action<HttpClient> preRequestConfigureHttpClientAction = null)
         {
-            preRequestConfigureHttpClientAction?.Invoke(_httpClient);
+            preRequestConfigureHttpClientAction?.Invoke(HttpClient);
 
-            var response = await _httpClient.GetAsync(requestUri);
+            var response = await HttpClient.GetAsync(requestUri);
 
             OutputToTestLog($"GET {requestUri}{Environment.NewLine}Response.StatusCode:{Environment.NewLine}{response.StatusCode}");
 
@@ -63,9 +63,9 @@ namespace TestHelpers.DotNetCore.WebApi
             bool ensureSuccessStatusCode = true,
             Action<HttpClient> preRequestConfigureHttpClientAction = null)
         {
-            preRequestConfigureHttpClientAction?.Invoke(_httpClient);
+            preRequestConfigureHttpClientAction?.Invoke(HttpClient);
 
-            var response = await _httpClient.PostAsJsonAsync(requestUri, value);
+            var response = await HttpClient.PostAsJsonAsync(requestUri, value);
 
             return await CreateAssertableResponseAsync(response, $"POST {requestUri}", ensureSuccessStatusCode);
         }
@@ -76,14 +76,14 @@ namespace TestHelpers.DotNetCore.WebApi
             bool ensureSuccessStatusCode = true,
             Action<HttpClient> preRequestConfigureHttpClientAction = null)
         {
-            preRequestConfigureHttpClientAction?.Invoke(_httpClient);
+            preRequestConfigureHttpClientAction?.Invoke(HttpClient);
 
             HttpResponseMessage response;
             using (var form = new MultipartFormDataContent())
             using (var streamContent = new ByteArrayContent(File.ReadAllBytes(pathToFile)))
             {
                 form.Add(streamContent, "files", Path.GetFileName(pathToFile));
-                response = await _httpClient.PostAsync(requestUri, form);
+                response = await HttpClient.PostAsync(requestUri, form);
             }
 
             return await CreateAssertableResponseAsync(response, $"POST file {requestUri}", ensureSuccessStatusCode);
@@ -95,9 +95,9 @@ namespace TestHelpers.DotNetCore.WebApi
             bool ensureSuccessStatusCode = true,
             Action<HttpClient> preRequestConfigureHttpClientAction = null)
         {
-            preRequestConfigureHttpClientAction?.Invoke(_httpClient);
+            preRequestConfigureHttpClientAction?.Invoke(HttpClient);
 
-            var response = await _httpClient.PutAsJsonAsync(requestUri, value);
+            var response = await HttpClient.PutAsJsonAsync(requestUri, value);
 
             return await CreateAssertableResponseAsync(response, $"PUT {requestUri}", ensureSuccessStatusCode);
         }
@@ -107,9 +107,9 @@ namespace TestHelpers.DotNetCore.WebApi
             bool ensureSuccessStatusCode = true,
             Action<HttpClient> preRequestConfigureHttpClientAction = null)
         {
-            preRequestConfigureHttpClientAction?.Invoke(_httpClient);
+            preRequestConfigureHttpClientAction?.Invoke(HttpClient);
 
-            var response = await _httpClient.DeleteAsync(requestUri);
+            var response = await HttpClient.DeleteAsync(requestUri);
 
             return await CreateAssertableResponseAsync(response, $"DELETE {requestUri}", ensureSuccessStatusCode);
         }
@@ -120,24 +120,37 @@ namespace TestHelpers.DotNetCore.WebApi
             bool ensureSuccessStatusCode = true,
             Action<HttpClient> preRequestConfigureHttpClientAction = null)
         {
-            preRequestConfigureHttpClientAction?.Invoke(_httpClient);
+            preRequestConfigureHttpClientAction?.Invoke(HttpClient);
             var request = new HttpRequestMessage(HttpMethod.Options, requestUri);
 
-            var response = await _httpClient.SendAsync(request);
+            var response = await HttpClient.SendAsync(request);
             return await CreateAssertableResponseAsync(response, $"OPTIONS {requestUri}", ensureSuccessStatusCode);
         }
 
-        private async Task<AssertableHttpResponse> CreateAssertableResponseAsync(
+        protected virtual Task<AssertableHttpResponse> CreateAssertableResponseAsync(
             HttpResponseMessage response,
             string testOutput,
             bool ensureSuccessStatusCode)
+        {
+            return CreateAssertableResponseAsync(
+                response,
+                testOutput,
+                ensureSuccessStatusCode,
+                OutputToTestLog);
+        }
+        
+        public static async Task<AssertableHttpResponse> CreateAssertableResponseAsync(
+            HttpResponseMessage response,
+            string testOutput,
+            bool ensureSuccessStatusCode,
+            Action<string> testOutputWriter)
         {
             var assertableResponse = new AssertableHttpResponse(
                 response.StatusCode,
                 await response.Content.ReadAsStringAsync(),
                 response.Headers);
 
-            OutputToTestLog($"{testOutput}{Environment.NewLine}Response:{Environment.NewLine}{assertableResponse}");
+             testOutputWriter?.Invoke($"{testOutput}{Environment.NewLine}Response:{Environment.NewLine}{assertableResponse}");
 
             if (ensureSuccessStatusCode)
                 assertableResponse.EnsureSuccessStatusCode();
@@ -145,14 +158,23 @@ namespace TestHelpers.DotNetCore.WebApi
             return assertableResponse;
         }
 
-        private void OutputToTestLog(string message)
+        public virtual void OutputToTestLog(string message)
         {
             _writeToTestOutput?.Invoke($"{Environment.NewLine}{message}");
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                HttpClient.Dispose();
+            }
+        }
+
         public void Dispose()
         {
-            _httpClient.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }
