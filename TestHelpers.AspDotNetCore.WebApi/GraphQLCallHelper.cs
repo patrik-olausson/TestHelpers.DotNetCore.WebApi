@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace TestHelpers.DotNetCore.WebApi
@@ -7,13 +8,16 @@ namespace TestHelpers.DotNetCore.WebApi
     {
         private readonly string _url;
         private readonly ApiCallHelper _apiCall;
+        private readonly IReadOnlyCollection<Tuple<string, string>> _defaultHeaders;
 
         public GraphQLCallHelper(
             string url, 
-            ApiCallHelper apiCall)
+            ApiCallHelper apiCall,
+            IReadOnlyCollection<Tuple<string, string>> defaultHeaders = null)
         {
             _url = url;
             _apiCall = apiCall ?? throw new ArgumentNullException(nameof(apiCall));
+            _defaultHeaders = defaultHeaders;
         }
 
         /// <summary>
@@ -35,6 +39,14 @@ namespace TestHelpers.DotNetCore.WebApi
             string value)
         {
             var stringContent = HttpClientExtensions.CreateHttpStringContent(value);
+            if (_defaultHeaders != null)
+            {
+                foreach (var defaultHeader in _defaultHeaders)
+                {
+                    stringContent.Headers.Add(defaultHeader.Item1, defaultHeader.Item2);
+                }
+            }
+
             var response = await _apiCall.HttpClient.PostAsync(requestUri, stringContent);
 
             return await ApiCallHelper.CreateAssertableResponseAsync(
