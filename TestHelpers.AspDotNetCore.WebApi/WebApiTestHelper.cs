@@ -10,7 +10,9 @@ namespace TestHelpers.DotNetCore.WebApi
         {
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
             
-            var applicationFactory = new WebApiApplicationFactory<TStartup>(configuration.ConfigureServiceCollection);
+            var applicationFactory = new WebApiApplicationFactory<TStartup>(
+                configuration.ConfigureServiceCollection,
+                configuration.ConfigureAppConfiguration);
             var httpClient = applicationFactory.CreateClient();
             
             ApiCall = new ApiCallHelper(

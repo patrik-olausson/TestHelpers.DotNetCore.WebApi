@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace TestHelpers.DotNetCore.WebApi
@@ -33,5 +35,17 @@ namespace TestHelpers.DotNetCore.WebApi
         /// </summary>
         /// <param name="services"></param>
         public abstract void ConfigureServiceCollection(IServiceCollection services);
+
+        /// <summary>
+        /// Method that is invoked when the web api application is being built.
+        /// Override this method if you for example want to add an application.json file from
+        /// your test project instead of using the "real one".
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="config"></param>
+        public virtual void ConfigureAppConfiguration(WebHostBuilderContext context, IConfigurationBuilder config)
+        {
+            
+        }
     }
 }
