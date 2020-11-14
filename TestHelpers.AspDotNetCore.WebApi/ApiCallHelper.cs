@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TestHelpers.DotNetCore.WebApi
 {
-    public class ApiCallHelper : IDisposable
+    public class ApiCallHelper : IDisposable, IApiCallHelper
     {
         public readonly HttpClient HttpClient;
         private readonly Action<string> _writeToTestOutput;

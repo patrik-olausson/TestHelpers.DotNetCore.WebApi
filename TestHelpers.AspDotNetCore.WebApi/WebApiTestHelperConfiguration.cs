@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,6 +47,21 @@ namespace TestHelpers.DotNetCore.WebApi
         public virtual void ConfigureAppConfiguration(WebHostBuilderContext context, IConfigurationBuilder config)
         {
             
+        }
+
+        /// <summary>
+        /// Method that is invoked when all configuration has been completed and the http client
+        /// has been created. Override this method if you want to provide your own implementation
+        /// of an api call helper, for example to handle wrapped responses.
+        /// </summary>
+        /// <param name="httpClient"></param>
+        /// <returns></returns>
+        public virtual IApiCallHelper CreateApiCallHelper(HttpClient httpClient)
+        {
+            return new ApiCallHelper(
+                httpClient,
+                LogToTestOutput,
+                DefaultHeaders);
         }
     }
 }

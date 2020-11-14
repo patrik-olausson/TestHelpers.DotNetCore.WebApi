@@ -4,7 +4,7 @@ namespace TestHelpers.DotNetCore.WebApi
 {
     public class WebApiTestHelper<TStartup> : IDisposable where TStartup : class
     {
-        public ApiCallHelper ApiCall { get; }
+        public IApiCallHelper ApiCall { get; }
 
         public WebApiTestHelper(WebApiTestHelperConfiguration configuration)
         {
@@ -14,11 +14,8 @@ namespace TestHelpers.DotNetCore.WebApi
                 configuration.ConfigureServiceCollection,
                 configuration.ConfigureAppConfiguration);
             var httpClient = applicationFactory.CreateClient();
-            
-            ApiCall = new ApiCallHelper(
-                httpClient, 
-                configuration.LogToTestOutput, 
-                configuration.DefaultHeaders);
+
+            ApiCall = configuration.CreateApiCallHelper(httpClient);
         }
         
         protected virtual void Dispose(bool disposing)
