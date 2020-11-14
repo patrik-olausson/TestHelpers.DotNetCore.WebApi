@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TestHelpers.DotNetCore.WebApi
 {
-    public class ApiCallHelper : IDisposable, IApiCallHelper
+    public class ApiCallHelper : IApiCallHelper
     {
         public readonly HttpClient HttpClient;
         private readonly Action<string> _writeToTestOutput;
@@ -116,7 +116,6 @@ namespace TestHelpers.DotNetCore.WebApi
 
         public virtual async Task<AssertableHttpResponse> OptionsAsync<T>(
             string requestUri,
-            T value,
             bool ensureSuccessStatusCode = true,
             Action<HttpClient> preRequestConfigureHttpClientAction = null)
         {

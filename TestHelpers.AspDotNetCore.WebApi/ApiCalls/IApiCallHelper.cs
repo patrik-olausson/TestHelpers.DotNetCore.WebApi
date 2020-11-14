@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace TestHelpers.DotNetCore.WebApi
 {
-    public interface IApiCallHelper
+    public interface IApiCallHelper : IDisposable
     {
         Task<AssertableHttpResponse> GetAsync(
             string requestUri,
@@ -41,11 +41,7 @@ namespace TestHelpers.DotNetCore.WebApi
 
         Task<AssertableHttpResponse> OptionsAsync<T>(
             string requestUri,
-            T value,
             bool ensureSuccessStatusCode = true,
             Action<HttpClient> preRequestConfigureHttpClientAction = null);
-
-        void OutputToTestLog(string message);
-        void Dispose();
     }
 }
