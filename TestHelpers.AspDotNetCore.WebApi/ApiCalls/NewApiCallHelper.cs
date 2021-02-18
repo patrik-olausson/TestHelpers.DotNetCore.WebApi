@@ -128,7 +128,7 @@ namespace TestHelpers.DotNetCore.WebApi
             _httpClient.Dispose();
         }
 
-        private async Task<AssertableHttpResponse> SendAsync(
+        public async Task<AssertableHttpResponse> SendAsync(
             HttpRequestMessage request,
             bool ensureSuccessStatusCode)
         {

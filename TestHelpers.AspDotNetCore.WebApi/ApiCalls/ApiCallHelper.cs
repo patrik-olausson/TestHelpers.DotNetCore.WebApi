@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace TestHelpers.DotNetCore.WebApi
 {
@@ -137,7 +139,46 @@ namespace TestHelpers.DotNetCore.WebApi
                 ensureSuccessStatusCode,
                 OutputToTestLog);
         }
-        
+
+        public async Task<AssertableHttpResponse> SendAsync(
+            HttpRequestMessage request,
+            bool ensureSuccessStatusCode)
+        {
+            var response = await HttpClient.SendAsync(request);
+
+            var assertableResponse = new AssertableHttpResponse(
+                response.StatusCode,
+                await TryGetContentAsString(response.Content),
+                response.Headers);
+
+            if (_writeToTestOutput != null)
+            {
+                var sb = new StringBuilder();
+                sb.AppendLine("Request");
+                sb.AppendLine($"{request.Method} {request.RequestUri}");
+                sb.AppendLine($"Headers: {JsonConvert.SerializeObject(request.Headers, Formatting.Indented)}");
+                sb.AppendLine(assertableResponse.ToString());
+                _writeToTestOutput(sb.ToString());
+            }
+
+            if (ensureSuccessStatusCode)
+                assertableResponse.EnsureSuccessStatusCode();
+
+            return assertableResponse;
+        }
+
+        private async Task<string> TryGetContentAsString(HttpContent content)
+        {
+            if (content == null)
+                return "No content (null)";
+
+            var contentString = await content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(contentString))
+                return "No content (empty)";
+
+            return contentString;
+        }
+
         public static async Task<AssertableHttpResponse> CreateAssertableResponseAsync(
             HttpResponseMessage response,
             string testOutput,
