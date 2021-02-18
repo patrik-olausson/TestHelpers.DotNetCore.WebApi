@@ -142,8 +142,11 @@ namespace TestHelpers.DotNetCore.WebApi
 
         public async Task<AssertableHttpResponse> SendAsync(
             HttpRequestMessage request,
+            Action<HttpClient> preRequestConfigureHttpClientAction,
             bool ensureSuccessStatusCode)
         {
+            preRequestConfigureHttpClientAction?.Invoke(HttpClient);
+
             var response = await HttpClient.SendAsync(request);
 
             var assertableResponse = new AssertableHttpResponse(

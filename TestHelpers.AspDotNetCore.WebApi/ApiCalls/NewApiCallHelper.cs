@@ -35,9 +35,7 @@ namespace TestHelpers.DotNetCore.WebApi
             bool ensureSuccessStatusCode = true,
             Action<HttpClient> preRequestConfigureHttpClientAction = null)
         {
-            preRequestConfigureHttpClientAction?.Invoke(_httpClient);
-
-            return SendAsync(CreateRequestMessage(HttpMethod.Get, requestUri), ensureSuccessStatusCode);
+            return SendAsync(CreateRequestMessage(HttpMethod.Get, requestUri), preRequestConfigureHttpClientAction, ensureSuccessStatusCode);
         }
 
         public Task<HttpResponseMessage> GetRawAsync(
@@ -56,13 +54,12 @@ namespace TestHelpers.DotNetCore.WebApi
             bool ensureSuccessStatusCode = true,
             Action<HttpClient> preRequestConfigureHttpClientAction = null)
         {
-            preRequestConfigureHttpClientAction?.Invoke(_httpClient);
-
             return SendAsync(
                 CreateRequestMessage(
                     HttpMethod.Post,
                     requestUri,
                     CreateJsonContent(value)),
+                preRequestConfigureHttpClientAction,
                 ensureSuccessStatusCode);
         }
 
@@ -72,8 +69,6 @@ namespace TestHelpers.DotNetCore.WebApi
             bool ensureSuccessStatusCode = true,
             Action<HttpClient> preRequestConfigureHttpClientAction = null)
         {
-            preRequestConfigureHttpClientAction?.Invoke(_httpClient);
-
             using (var form = new MultipartFormDataContent())
             using (var streamContent = new ByteArrayContent(File.ReadAllBytes(pathToFile)))
             {
@@ -83,6 +78,7 @@ namespace TestHelpers.DotNetCore.WebApi
                         HttpMethod.Post,
                         requestUri,
                         form),
+                    preRequestConfigureHttpClientAction,
                     ensureSuccessStatusCode);
             }
         }
@@ -93,13 +89,12 @@ namespace TestHelpers.DotNetCore.WebApi
             bool ensureSuccessStatusCode = true,
             Action<HttpClient> preRequestConfigureHttpClientAction = null)
         {
-            preRequestConfigureHttpClientAction?.Invoke(_httpClient);
-
             return SendAsync(
                 CreateRequestMessage(
                     HttpMethod.Put,
                     requestUri,
                     CreateJsonContent(value)),
+                preRequestConfigureHttpClientAction,
                 ensureSuccessStatusCode);
         }
 
@@ -108,9 +103,7 @@ namespace TestHelpers.DotNetCore.WebApi
             bool ensureSuccessStatusCode = true,
             Action<HttpClient> preRequestConfigureHttpClientAction = null)
         {
-            preRequestConfigureHttpClientAction?.Invoke(_httpClient);
-
-            return SendAsync(CreateRequestMessage(HttpMethod.Delete, requestUri), ensureSuccessStatusCode);
+            return SendAsync(CreateRequestMessage(HttpMethod.Delete, requestUri), preRequestConfigureHttpClientAction, ensureSuccessStatusCode);
         }
 
         public Task<AssertableHttpResponse> OptionsAsync<T>(
@@ -118,9 +111,7 @@ namespace TestHelpers.DotNetCore.WebApi
             bool ensureSuccessStatusCode = true,
             Action<HttpClient> preRequestConfigureHttpClientAction = null)
         {
-            preRequestConfigureHttpClientAction?.Invoke(_httpClient);
-
-            return SendAsync(CreateRequestMessage(HttpMethod.Options, requestUri), ensureSuccessStatusCode);
+            return SendAsync(CreateRequestMessage(HttpMethod.Options, requestUri), preRequestConfigureHttpClientAction, ensureSuccessStatusCode);
         }
 
         public void Dispose()
@@ -130,8 +121,11 @@ namespace TestHelpers.DotNetCore.WebApi
 
         public async Task<AssertableHttpResponse> SendAsync(
             HttpRequestMessage request,
-            bool ensureSuccessStatusCode)
+            Action<HttpClient> preRequestConfigureHttpClientAction,
+            bool ensureSuccessStatusCode = true)
         {
+            preRequestConfigureHttpClientAction?.Invoke(_httpClient);
+
             var response = await _httpClient.SendAsync(request);
 
             var assertableResponse = new AssertableHttpResponse(
