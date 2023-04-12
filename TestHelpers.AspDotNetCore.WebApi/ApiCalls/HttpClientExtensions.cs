@@ -1,7 +1,7 @@
 ﻿using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace TestHelpers.DotNetCore.WebApi
 {
@@ -19,12 +19,11 @@ namespace TestHelpers.DotNetCore.WebApi
 
         private static HttpContent CreateJsonContent<T>(T value, bool indented = true, Encoding encoding = null)
         {
-            var settings = new JsonSerializerSettings
+            var options = new JsonSerializerOptions
             {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                Formatting = indented ? Formatting.Indented : Formatting.None
+                WriteIndented = indented,
             };
-            var jsonString = JsonConvert.SerializeObject(value, settings);
+            var jsonString = JsonSerializer.Serialize(value, options);
 
             return CreateHttpStringContent(content:jsonString, encoding: encoding);
         }
