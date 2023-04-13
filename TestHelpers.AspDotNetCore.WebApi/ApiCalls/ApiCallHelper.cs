@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace TestHelpers.DotNetCore.WebApi
 {
     public class ApiCallHelper : IApiCallHelper
     {
+        private static readonly JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, };
+
         public readonly HttpClient HttpClient;
         private readonly Action<string> _writeToTestOutput;
 
@@ -159,7 +162,7 @@ namespace TestHelpers.DotNetCore.WebApi
                 var sb = new StringBuilder();
                 sb.AppendLine("Request");
                 sb.AppendLine($"{request.Method} {request.RequestUri}");
-                sb.AppendLine($"Headers: {JsonConvert.SerializeObject(request.Headers, Formatting.Indented)}");
+                sb.AppendLine($"Headers: {JsonSerializer.Serialize(request.Headers, jsonSerializerOptions)}");
                 sb.AppendLine(assertableResponse.ToString());
                 _writeToTestOutput(sb.ToString());
             }

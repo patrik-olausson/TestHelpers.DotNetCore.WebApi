@@ -2,13 +2,15 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 
 namespace TestHelpers.DotNetCore.WebApi
 {
     public class AssertableHttpResponse
     {
+        private static readonly JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, };
+
         public string Body { get; }
 
         public string BodyAsJsonFormattedString
@@ -16,7 +18,10 @@ namespace TestHelpers.DotNetCore.WebApi
             get
             {
                 if (LooksLikeItContainsJson(Body))
-                    return JToken.Parse(Body).ToString(Formatting.Indented);
+                {
+                    var element = JsonSerializer.Deserialize<JsonElement>(Body);
+                    return JsonSerializer.Serialize(element, jsonSerializerOptions);
+                }
 
                 return "{}";
             }
@@ -50,7 +55,7 @@ namespace TestHelpers.DotNetCore.WebApi
         {
             var sb = new StringBuilder();
             sb.AppendLine($"StatusCode: {StatusCode}");
-            sb.AppendLine($"Headers: {JsonConvert.SerializeObject(Headers, Formatting.Indented)}");
+            sb.AppendLine($"Headers: {JsonSerializer.Serialize(Headers, jsonSerializerOptions)}");
 
             var body = LooksLikeItContainsJson(Body) ? BodyAsJsonFormattedString : Body;
             sb.AppendLine($"Body: {body}");

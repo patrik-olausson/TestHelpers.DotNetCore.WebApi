@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace TestHelpers.DotNetCore.WebApi
@@ -29,7 +30,7 @@ namespace TestHelpers.DotNetCore.WebApi
         /// http response)</returns>
         public async Task<GraphQLResponse> QueryAsync(string query)
         {
-            var response = await PostAsync(_url, $"{{\"query\":\"{query}\"}}");
+            var response = await PostAsync(_url, $"{{\"query\":{JsonSerializer.Serialize(query)}}}");
             
             return new GraphQLResponse(response);
         }

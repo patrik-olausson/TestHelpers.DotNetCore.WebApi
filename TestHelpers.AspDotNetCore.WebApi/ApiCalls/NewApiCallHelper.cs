@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace TestHelpers.DotNetCore.WebApi
 {
     public class NewApiCallHelper : IApiCallHelper
     {
+        private static readonly JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, };
+
         private readonly HttpClient _httpClient;
         private readonly Action<string> _writeToTestOutput;
 
@@ -178,7 +181,7 @@ namespace TestHelpers.DotNetCore.WebApi
 
         private string SerializeToJson(object value)
         {
-            return JsonConvert.SerializeObject(value, Formatting.Indented);
+            return JsonSerializer.Serialize(value, jsonSerializerOptions);
         }
 
         private HttpRequestMessage CreateRequestMessage(
