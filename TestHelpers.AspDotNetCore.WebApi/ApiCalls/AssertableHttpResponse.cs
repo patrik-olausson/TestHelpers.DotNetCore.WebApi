@@ -2,13 +2,14 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 namespace TestHelpers.DotNetCore.WebApi
 {
     public class AssertableHttpResponse
     {
-        private static readonly JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions { WriteIndented = true };
+        private static readonly JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, };
 
         public string Body { get; }
 

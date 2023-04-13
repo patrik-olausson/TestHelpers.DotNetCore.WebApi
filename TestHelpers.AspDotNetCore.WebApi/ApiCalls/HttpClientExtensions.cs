@@ -1,5 +1,6 @@
 ﻿using System.Net.Http;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -22,8 +23,10 @@ namespace TestHelpers.DotNetCore.WebApi
             var options = new JsonSerializerOptions
             {
                 WriteIndented = indented,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             };
-            var jsonString = JsonSerializer.Serialize(value, options);
+
+        var jsonString = JsonSerializer.Serialize(value, options);
 
             return CreateHttpStringContent(content:jsonString, encoding: encoding);
         }
